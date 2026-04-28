@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityEvents — Афиша мероприятий</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #06d6a0;
+            --warning: #ffd166;
+            --danger: #ef476f;
+            --dark: #111529;
+            --light: #f8f9ff;
+            --gray: #6c757d;
+            --border-radius: 16px;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 15px 35px -5px rgba(0, 0, 0, 0.15), 0 10px 15px -6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .logo i {
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 18px;
+            margin-top: 8px;
+        }
+
+        .search-container {
+            max-width: 650px;
+            margin: 0 auto 35px;
+            position: relative;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 18px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border: none;
+            border-radius: 50px;
+            background: white;
+            box-shadow: var(--shadow);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        #searchInput:focus {
+            outline: none;
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-1px);
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .filter-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 50px;
+            background: white;
+            color: var(--dark);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            color: white;
+        }
+
+        .filter-btn.all { background: var(--primary); }
+        .filter-btn.concerts { background: #e94560; }
+        .filter-btn.exhibitions { background: #f7b538; color: #333; }
+        .filter-btn.theater { background: #6a4c93; }
+        .filter-btn.sports { background: #1dd3b0; }
+        .filter-btn.workshops { background: #ff9e6d; }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 28px;
+            margin-bottom: 50px;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .event-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .event-date {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 18px 15px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .event-day {
+            font-size: 32px;
+            line-height: 1;
+            display: block;
+            margin: 4px 0 2px;
+        }
+
+        .event-month {
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .event-content {
+            padding: 22px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-category {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            width: fit-content;
+            margin-bottom: 14px;
+            background: #f0f4ff;
+            color: var(--primary);
+        }
+
+        .category-concerts { background: #fff0f3; color: #e94560; }
+        .category-exhibitions { background: #fff8e6; color: #d4a017; }
+        .category-theater { background: #f8f3ff; color: #6a4c93; }
+        .category-sports { background: #e6fff9; color: #0d9488; }
+        .category-workshops { background: #fff4eb; color: #e8793f; }
+
+        .event-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            line-height: 1.3;
+            color: var(--dark);
+        }
+
+        .event-desc {
+            color: var(--gray);
+            margin-bottom: 20px;
+            flex-grow: 1;
+            font-size: 15px;
+        }
+
+        .event-location {
+            display: flex;
+            align-items: center;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .event-location i {
+            color: var(--primary);
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: var(--gray);
+            font-size: 15px;
+            border-top: 1px solid #eaeaea;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .filter-btn {
+                width: 100%;
+                max-width: 320px;
+                justify-content: center;
+            }
+            
+            .logo {
+                font-size: 24px;
+            }
+            
+            .event-day {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-calendar-alt"></i>
+                <span>CityEvents</span>
+            </div>
+            <div class="subtitle">Афиша мероприятий вашего города</div>
+        </header>
+
+        <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Поиск мероприятий, мест, категорий...">
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn all active" data-category="all">
+                <i class="fas fa-list"></i> Все
+            </button>
+            <button class="filter-btn concerts" data-category="concerts">
+                <i class="fas fa-music"></i> Концерты
+            </button>
+            <button class="filter-btn exhibitions" data-category="exhibitions">
+                <i class="fas fa-image"></i> Выставки
+            </button>
+            <button class="filter-btn theater" data-category="theater">
+                <i class="fas fa-mask"></i> Театр
+            </button>
+            <button class="filter-btn sports" data-category="sports">
+                <i class="fas fa-running"></i> Спорт
+            </button>
+            <button class="filter-btn workshops" data-category="workshops">
+                <i class="fas fa-tools"></i> Мастер-классы
+            </button>
+        </div>
+
+        <div class="events-grid">
+            <!-- Карточка 1 -->
+            <div class="event-card" data-category="concerts">
+                <div class="event-date">
+                    <span class="event-day">27</span>
+                    <span class="event-month">января</span>
+                </div>
+                <div class="event-content">
+                    <span class="event-category category-concerts">
+                        <i class="fas fa-music"></i> Концерт
+                    </span>
+                    <h3 class="event-title">Джазовый вечер в центре города</h3>
+                    <p class="event-desc">Приглашаем на атмосферный джазовый вечер с участием лучших музыкантов города. Живая музыка и уютная атмосфера.</p>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Джаз-клуб "Импровизация", ул. Ленина 45
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карточка 2 -->
+            <div class="event-card" data-category="exhibitions">
+                <div class="event-date">
+                    <span class="event-day">28</span>
+                    <span class="event-month">января</span>
+                </div>
+                <div class="event-content">
+                    <span class="event-category category-exhibitions">
+                        <i class="fas fa-palette"></i> Выставка
+                    </span>
+                    <h3 class="event-title">Современное искусство региона</h3>
+                    <p class="event-desc">Выставка молодых художников с уникальными инсталляциями и живописью. Работы, которые заставят задуматься.</p>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Арт-галерея "Горизонт", пр. Победы 78
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карточка 3 -->
+            <div class="event-card" data-category="theater">
+                <div class="event-date">
+                    <span class="event-day">29</span>
+                    <span class="event-month">января</span>
+                </div>
+                <div class="event-content">
+                    <span class="event-category category-theater">
+                        <i class="fas fa-theater-masks"></i> Театр
+                    </span>
+                    <h3 class="event-title">Спектакль "Зимняя сказка"</h3>
+                    <p class="event-desc">Новая постановка городского театра драмы. Захватывающая история для всей семьи с потрясающими декорациями.</p>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Городской театр, пл. Свободы 12
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карточка 4 -->
+            <div class="event-card" data-category="sports">
+                <div class="event-date">
+                    <span class="event-day">30</span>
+                    <span class="event-month">января</span>
+                </div>
+                <div class="event-content">
+                    <span class="event-category category-sports">
+                        <i class="fas fa-dumbbell"></i> Спорт
+                    </span>
+                    <h3 class="event-title">Зимний марафон по центру</h3>
+                    <p class="event-desc">Ежегодный зимний марафон для бегунов всех уровней. Дистанции 5 и 10 км. Призы победителям и памятные медали.</p>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Центральный парк, старт у фонтана
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карточка 5 -->
+            <div class="event-card" data-category="workshops">
+                <div class="event-date">
+                    <span class="event-day">31</span>
+                    <span class="event-month">января</span>
+                </div>
+                <div class="event-content">
+                    <span class="event-category category-workshops">
+                        <i class="fas fa-utensils"></i> Мастер-класс
+                    </span>
+                    <h3 class="event-title">Кулинарный вечер: Зимние десерты</h3>
+                    <p class="event-desc">Научитесь готовить изысканные зимние десерты под руководством шеф-повара. Все ингредиенты предоставляются.</p>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Кулинарная школа "Вкус жизни", ул. Гоголя 22
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карточка 6 -->
+            <div class="event-card" data-category="concerts">
+                <div class="event-date">
+                    <span class="event-day">1</span>
+                    <span class="event-month">февраля</span>
+                </div>
+                <div class="event-content">
+                    <span class="event-category category-concerts">
+                        <i class="fas fa-music"></i> Концерт
+                    </span>
+                    <h3 class="event-title">Симфонический оркестр</h3>
+                    <p class="event-desc">Вечер классической музыки в исполнении городского симфонического оркестра. Программа включает лучшие произведения.</p>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Филармония, ул. Культуры 10
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 CityEvents — Афиша мероприятий города</p>
+            <p>Контакты: info@cityevents.ru | +7 (495) 123-45-67</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const eventCards = document.querySelectorAll('.event-card');
+            const searchInput = document.getElementById('searchInput');
+            
+            // Фильтрация по категориям
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Обновляем активные кнопки
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const category = btn.dataset.category;
+                    
+                    eventCards.forEach(card => {
+                        if (category === 'all' || card.dataset.category === category) {
+                            card.style.display = 'flex';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            // Поиск по мероприятиям
+            searchInput.addEventListener('input', () => {
+                const term = searchInput.value.toLowerCase().trim();
+                
+                eventCards.forEach(card => {
+                    if (card.style.display === 'none') return;
+                    
+                    const title = card.querySelector('.event-title').textContent.toLowerCase();
+                    const desc = card.querySelector('.event-desc').textContent.toLowerCase();
+                    const location = card.querySelector('.event-location').textContent.toLowerCase();
+                    const category = card.querySelector('.event-category').textContent.toLowerCase();
+                    
+                    const match = title.includes(term) || desc.includes(term) || 
+                                 location.includes(term) || category.includes(term);
+                    
+                    card.style.display = match ? 'flex' : 'none';
+                });
+            });
+            
+            // Анимация появления карточек
+            setTimeout(() => {
+                eventCards.forEach((card, index) => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(15px)';
+                    card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 200 + (index * 100));
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>
