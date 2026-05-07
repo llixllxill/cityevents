@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CityEvents — Афиша мероприятий</title>
-    {% load static %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -131,17 +130,16 @@
             box-shadow: var(--shadow-hover);
         }
 
-        .filter-btn.all { background: var(--primary); color: white; }
-        .filter-btn.concerts { background: #e94560; color: white; }
-        .filter-btn.exhibitions { background: #f7b538; color: #333; }
-        .filter-btn.theater { background: #6a4c93; color: white; }
-        .filter-btn.sports { background: #1dd3b0; color: #333; }
-        .filter-btn.workshops { background: #ff9e6d; color: #333; }
-
-        .filter-btn:not(.active) {
-            background: white;
-            color: var(--dark);
+        .filter-btn.active, .filter-btn:hover {
+            color: white;
         }
+
+        .filter-btn.all { background: var(--primary); }
+        .filter-btn.concerts { background: #e94560; }
+        .filter-btn.exhibitions { background: #f7b538; color: #333; }
+        .filter-btn.theater { background: #6a4c93; }
+        .filter-btn.sports { background: #1dd3b0; }
+        .filter-btn.workshops { background: #ff9e6d; }
 
         .events-grid {
             display: grid;
@@ -159,7 +157,6 @@
             display: flex;
             flex-direction: column;
             height: 100%;
-            cursor: pointer;
         }
 
         .event-card:hover {
@@ -205,7 +202,15 @@
             font-size: 14px;
             width: fit-content;
             margin-bottom: 14px;
+            background: #f0f4ff;
+            color: var(--primary);
         }
+
+        .category-concerts { background: #fff0f3; color: #e94560; }
+        .category-exhibitions { background: #fff8e6; color: #d4a017; }
+        .category-theater { background: #f8f3ff; color: #6a4c93; }
+        .category-sports { background: #e6fff9; color: #0d9488; }
+        .category-workshops { background: #fff4eb; color: #e8793f; }
 
         .event-title {
             font-size: 20px;
@@ -238,17 +243,6 @@
             font-size: 16px;
         }
 
-        .event-price {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 5px 12px;
-            background: var(--success);
-            color: white;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
         footer {
             text-align: center;
             padding: 25px;
@@ -256,121 +250,6 @@
             font-size: 15px;
             border-top: 1px solid #eaeaea;
             margin-top: 20px;
-        }
-
-        .event-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(17, 21, 41, 0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            z-index: 1000;
-        }
-
-        .event-modal.open {
-            display: flex;
-        }
-
-        .event-modal-content {
-            background: white;
-            border-radius: var(--border-radius);
-            width: 100%;
-            max-width: 600px;
-            box-shadow: var(--shadow-hover);
-            overflow: hidden;
-            animation: modalIn 0.25s ease;
-        }
-
-        .event-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 18px 22px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .event-modal-title {
-            font-size: 22px;
-            line-height: 1.3;
-            margin-right: 12px;
-        }
-
-        .event-modal-close {
-            border: none;
-            background: transparent;
-            font-size: 28px;
-            cursor: pointer;
-            color: var(--gray);
-            line-height: 1;
-            transition: var(--transition);
-        }
-
-        .event-modal-close:hover {
-            color: var(--danger);
-        }
-
-        .event-modal-body {
-            padding: 22px;
-        }
-
-        .event-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 20px;
-            color: var(--gray);
-            font-weight: 500;
-        }
-
-        .event-meta span {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .event-modal-desc {
-            color: var(--dark);
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        .modal-event-location {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
-
-        .btn-detail {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 12px 24px;
-            background: var(--primary);
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            text-align: center;
-            transition: var(--transition);
-        }
-
-        .btn-detail:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-        }
-
-        @keyframes modalIn {
-            from {
-                transform: translateY(15px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
         }
 
         @media (max-width: 768px) {
@@ -387,6 +266,14 @@
                 width: 100%;
                 max-width: 320px;
                 justify-content: center;
+            }
+            
+            .logo {
+                font-size: 24px;
+            }
+            
+            .event-day {
+                font-size: 28px;
             }
         }
     </style>
@@ -427,44 +314,120 @@
             </button>
         </div>
 
-        <div class="events-grid" id="eventsGrid">
-            {% for event in events %}
-            <div class="event-card" data-event-id="{{ event.id }}" data-category="{{ event.category }}">
+        <div class="events-grid">
+            <!-- Карточка 1 -->
+            <div class="event-card" data-category="concerts">
                 <div class="event-date">
-                    <span class="event-day">{{ event.date|date:"d" }}</span>
-                    <span class="event-month">{{ event.date|date:"F"|lower }}</span>
+                    <span class="event-day">27</span>
+                    <span class="event-month">января</span>
                 </div>
                 <div class="event-content">
-                    <div class="event-category" style="background: 
-                        {% if event.category == 'concerts' %}#fff0f3; color: #e94560
-                        {% elif event.category == 'exhibitions' %}#fff8e6; color: #d4a017
-                        {% elif event.category == 'theater' %}#f8f3ff; color: #6a4c93
-                        {% elif event.category == 'sports' %}#e6fff9; color: #0d9488
-                        {% else %}#fff4eb; color: #e8793f{% endif %}">
-                        <i class="fas 
-                            {% if event.category == 'concerts' %}fa-music
-                            {% elif event.category == 'exhibitions' %}fa-palette
-                            {% elif event.category == 'theater' %}fa-theater-masks
-                            {% elif event.category == 'sports' %}fa-dumbbell
-                            {% else %}fa-utensils{% endif %}"></i>
-                        {{ event.get_category_display }}
-                    </div>
-                    <h3 class="event-title">{{ event.title }}</h3>
-                    <p class="event-desc">{{ event.description|truncatewords:20 }}</p>
+                    <span class="event-category category-concerts">
+                        <i class="fas fa-music"></i> Концерт
+                    </span>
+                    <h3 class="event-title">Джазовый вечер в центре города</h3>
+                    <p class="event-desc">Приглашаем на атмосферный джазовый вечер с участием лучших музыкантов города. Живая музыка и уютная атмосфера.</p>
                     <div class="event-location">
                         <i class="fas fa-map-marker-alt"></i>
-                        {{ event.location }}, {{ event.address }}
+                        Джаз-клуб "Импровизация", ул. Ленина 45
                     </div>
-                    {% if event.price > 0 %}
-                    <div class="event-price">{{ event.price }} ₽</div>
-                    {% else %}
-                    <div class="event-price">Бесплатно</div>
-                    {% endif %}
                 </div>
             </div>
-            {% empty %}
-            <p>Нет мероприятий</p>
-            {% endfor %}
+            
+            <!-- Карточка 2 -->
+            <div class="event-card" data-category="exhibitions">
+                <div class="event-date">
+                    <span class="event-day">28</span>
+                    <span class="event-month">января</span>
+                </div>
+                <div class="event-content">
+                    <span class="event-category category-exhibitions">
+                        <i class="fas fa-palette"></i> Выставка
+                    </span>
+                    <h3 class="event-title">Современное искусство региона</h3>
+                    <p class="event-desc">Выставка молодых художников с уникальными инсталляциями и живописью. Работы, которые заставят задуматься.</p>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Арт-галерея "Горизонт", пр. Победы 78
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карточка 3 -->
+            <div class="event-card" data-category="theater">
+                <div class="event-date">
+                    <span class="event-day">29</span>
+                    <span class="event-month">января</span>
+                </div>
+                <div class="event-content">
+                    <span class="event-category category-theater">
+                        <i class="fas fa-theater-masks"></i> Театр
+                    </span>
+                    <h3 class="event-title">Спектакль "Зимняя сказка"</h3>
+                    <p class="event-desc">Новая постановка городского театра драмы. Захватывающая история для всей семьи с потрясающими декорациями.</p>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Городской театр, пл. Свободы 12
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карточка 4 -->
+            <div class="event-card" data-category="sports">
+                <div class="event-date">
+                    <span class="event-day">30</span>
+                    <span class="event-month">января</span>
+                </div>
+                <div class="event-content">
+                    <span class="event-category category-sports">
+                        <i class="fas fa-dumbbell"></i> Спорт
+                    </span>
+                    <h3 class="event-title">Зимний марафон по центру</h3>
+                    <p class="event-desc">Ежегодный зимний марафон для бегунов всех уровней. Дистанции 5 и 10 км. Призы победителям и памятные медали.</p>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Центральный парк, старт у фонтана
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карточка 5 -->
+            <div class="event-card" data-category="workshops">
+                <div class="event-date">
+                    <span class="event-day">31</span>
+                    <span class="event-month">января</span>
+                </div>
+                <div class="event-content">
+                    <span class="event-category category-workshops">
+                        <i class="fas fa-utensils"></i> Мастер-класс
+                    </span>
+                    <h3 class="event-title">Кулинарный вечер: Зимние десерты</h3>
+                    <p class="event-desc">Научитесь готовить изысканные зимние десерты под руководством шеф-повара. Все ингредиенты предоставляются.</p>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Кулинарная школа "Вкус жизни", ул. Гоголя 22
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карточка 6 -->
+            <div class="event-card" data-category="concerts">
+                <div class="event-date">
+                    <span class="event-day">1</span>
+                    <span class="event-month">февраля</span>
+                </div>
+                <div class="event-content">
+                    <span class="event-category category-concerts">
+                        <i class="fas fa-music"></i> Концерт
+                    </span>
+                    <h3 class="event-title">Симфонический оркестр</h3>
+                    <p class="event-desc">Вечер классической музыки в исполнении городского симфонического оркестра. Программа включает лучшие произведения.</p>
+                    <div class="event-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Филармония, ул. Культуры 10
+                    </div>
+                </div>
+            </div>
         </div>
 
         <footer>
@@ -473,154 +436,63 @@
         </footer>
     </div>
 
-    <div class="event-modal" id="eventModal">
-        <div class="event-modal-content">
-            <div class="event-modal-header">
-                <h2 class="event-modal-title" id="modalTitle"></h2>
-                <button class="event-modal-close" id="modalCloseBtn">&times;</button>
-            </div>
-            <div class="event-modal-body">
-                <div class="event-meta">
-                    <span><i class="fas fa-calendar"></i> <span id="modalDate"></span></span>
-                    <span><i class="fas fa-tag"></i> <span id="modalCategory"></span></span>
-                    <span><i class="fas fa-ruble-sign"></i> <span id="modalPrice"></span></span>
-                </div>
-                <p class="event-modal-desc" id="modalDescription"></p>
-                <div class="modal-event-location">
-                    <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i>
-                    <span id="modalLocation"></span>
-                </div>
-                <a href="#" id="detailLink" class="btn-detail">Подробнее о мероприятии →</a>
-            </div>
-        </div>
-    </div>
-
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             const filterBtns = document.querySelectorAll('.filter-btn');
+            const eventCards = document.querySelectorAll('.event-card');
             const searchInput = document.getElementById('searchInput');
-            const eventsGrid = document.getElementById('eventsGrid');
-            const modal = document.getElementById('eventModal');
-            const modalCloseBtn = document.getElementById('modalCloseBtn');
-
-            function loadEvents() {
-                const activeFilter = document.querySelector('.filter-btn.active');
-                const category = activeFilter ? activeFilter.dataset.category : 'all';
-                const searchTerm = searchInput.value;
-                
-                fetch(`?category=${category}&search=${searchTerm}`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    updateEventsGrid(data.events);
-                });
-            }
-
-            function updateEventsGrid(events) {
-                if (events.length === 0) {
-                    eventsGrid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">Мероприятия не найдены</p>';
-                    return;
-                }
-                
-                let categoryStyles = {
-                    'concerts': { bg: '#fff0f3', color: '#e94560', icon: 'fa-music', label: 'Концерт' },
-                    'exhibitions': { bg: '#fff8e6', color: '#d4a017', icon: 'fa-palette', label: 'Выставка' },
-                    'theater': { bg: '#f8f3ff', color: '#6a4c93', icon: 'fa-theater-masks', label: 'Театр' },
-                    'sports': { bg: '#e6fff9', color: '#0d9488', icon: 'fa-dumbbell', label: 'Спорт' },
-                    'workshops': { bg: '#fff4eb', color: '#e8793f', icon: 'fa-utensils', label: 'Мастер-класс' }
-                };
-                
-                eventsGrid.innerHTML = events.map(event => {
-                    const style = categoryStyles[event.category] || categoryStyles['concerts'];
-                    const monthNames = {
-                        'january': 'января', 'february': 'февраля', 'march': 'марта',
-                        'april': 'апреля', 'may': 'мая', 'june': 'июня',
-                        'july': 'июля', 'august': 'августа', 'september': 'сентября',
-                        'october': 'октября', 'november': 'ноября', 'december': 'декабря'
-                    };
-                    const month = monthNames[event.month] || event.month;
-                    const price = event.price > 0 ? `${event.price} ₽` : 'Бесплатно';
-                    
-                    return `
-                        <div class="event-card" data-event-id="${event.id}" data-category="${event.category}">
-                            <div class="event-date">
-                                <span class="event-day">${event.date}</span>
-                                <span class="event-month">${month}</span>
-                            </div>
-                            <div class="event-content">
-                                <div class="event-category" style="background: ${style.bg}; color: ${style.color}">
-                                    <i class="fas ${style.icon}"></i> ${style.label}
-                                </div>
-                                <h3 class="event-title">${escapeHtml(event.title)}</h3>
-                                <p class="event-desc">${escapeHtml(event.description.substring(0, 100))}...</p>
-                                <div class="event-location">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    ${escapeHtml(event.location)}
-                                </div>
-                                <div class="event-price">${price}</div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                attachEventClickHandlers();
-            }
-
-            function escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
-
-            function attachEventClickHandlers() {
-                document.querySelectorAll('.event-card').forEach(card => {
-                    card.removeEventListener('click', handleCardClick);
-                    card.addEventListener('click', handleCardClick);
-                });
-            }
-
-            function handleCardClick(e) {
-                const card = e.currentTarget;
-                const eventId = card.dataset.eventId;
-                if (eventId) {
-                    window.location.href = `/event/${eventId}/`;
-                }
-            }
-
+            
+            // Фильтрация по категориям
             filterBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
+                    // Обновляем активные кнопки
                     filterBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    loadEvents();
+                    
+                    const category = btn.dataset.category;
+                    
+                    eventCards.forEach(card => {
+                        if (category === 'all' || card.dataset.category === category) {
+                            card.style.display = 'flex';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
                 });
             });
-
-            let searchTimeout;
+            
+            // Поиск по мероприятиям
             searchInput.addEventListener('input', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(loadEvents, 300);
+                const term = searchInput.value.toLowerCase().trim();
+                
+                eventCards.forEach(card => {
+                    if (card.style.display === 'none') return;
+                    
+                    const title = card.querySelector('.event-title').textContent.toLowerCase();
+                    const desc = card.querySelector('.event-desc').textContent.toLowerCase();
+                    const location = card.querySelector('.event-location').textContent.toLowerCase();
+                    const category = card.querySelector('.event-category').textContent.toLowerCase();
+                    
+                    const match = title.includes(term) || desc.includes(term) || 
+                                 location.includes(term) || category.includes(term);
+                    
+                    card.style.display = match ? 'flex' : 'none';
+                });
             });
             
-            modalCloseBtn.addEventListener('click', () => {
-                modal.classList.remove('open');
-            });
-            
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('open');
-                }
-            });
-            
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && modal.classList.contains('open')) {
-                    modal.classList.remove('open');
-                }
-            });
-            
-            attachEventClickHandlers();
+            // Анимация появления карточек
+            setTimeout(() => {
+                eventCards.forEach((card, index) => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(15px)';
+                    card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 200 + (index * 100));
+                });
+            }, 100);
         });
     </script>
 </body>
